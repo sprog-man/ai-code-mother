@@ -27,6 +27,22 @@ public interface UserService {
      */
     UserVO userLogin(String userAccount, String userPassword, HttpServletRequest request);
 
+    /**
+     * 获取当前登录用户
+     *
+     * @param request 请求对象
+     * @return 当前用户
+     */
+    User getLoginUser(HttpServletRequest request);
+
+    /**
+     * 用户登出
+     *
+     * @param request 请求对象
+     * @return 是否成功
+     */
+    boolean userLogout(HttpServletRequest request);
+
 
     /**
      * 获取脱敏的用户信息

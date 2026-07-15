@@ -126,6 +126,38 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    /**
+     * 获取当前登录用户
+     */
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        // 1. 获取 session
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser = (User) userObj; // 3. 类型转换
+        // 2. 判断是否存在
+        if (currentUser == null) {
+            return null;
+        }
+
+        return currentUser;
+    }
+
+    /**
+     * 判断用户是否登出
+     */
+    @Override
+    public boolean userLogout(HttpServletRequest request) {
+        if (request.getSession().getAttribute(USER_LOGIN_STATE) == null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+
+        //移除登录状态
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
+        return true;
+    }
+
+
+    /* 用于构造脱敏用户信息 */
     @Override
     public UserVO getUserVO(User user) {
         if (user==null){

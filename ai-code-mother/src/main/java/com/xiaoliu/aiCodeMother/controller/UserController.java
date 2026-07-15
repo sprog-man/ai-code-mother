@@ -76,7 +76,28 @@ public class UserController {
         return ResultUtils.success(userVO);
     }
 
-    // 普通接口==========================
+    /**
+     * 获取当前登录用户
+     *
+     */
+    @GetMapping("/get/login")
+    @Operation(summary = "获取当前登录用户")
+    public BaseResponse<UserVO> getLoginUser(HttpServletRequest request){
+        User user = userService.getLoginUser(request);
+        return ResultUtils.success(userService.getUserVO(user));
+    }
+
+    /**
+     * 用户登出
+     */
+    @PostMapping("/logout")
+    @Operation(summary = "用户登出")
+    public BaseResponse<Boolean> userLogout(HttpServletRequest request){
+        boolean result = userService.userLogout(request);
+        return ResultUtils.success(result);
+    }
+
+    // ========== 原有的 CRUD 接口 ==========
 
     /* 查询所有用户 */
     @GetMapping("/list")
