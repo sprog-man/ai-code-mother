@@ -48,11 +48,13 @@ public class AutoFillAspect {
             //4 准备要填充的数据
             Date now=new Date();
 
+
             //5 根据操作类型填充字段
             if (operationType==OperationType.INSERT){
                 //插入操作：填充创建时间和更新时间
                 setFieldValue(entity, "setCreateTime", now);
                 setFieldValue(entity, "setUpdateTime", now);
+                setFieldValue(entity, "setIsDelete", 0); // 0 表示未删除
                 log.info("自动填充创建时间和更新时间");
             }else if (operationType==OperationType.UPDATE){
                 // 更新操作：只填充更新时间
@@ -70,6 +72,19 @@ public class AutoFillAspect {
     private void setFieldValue(Object entity, String methodName, Date value) {
         try{
             Method method=entity.getClass().getMethod(methodName, value.getClass());
+            method.invoke(entity, value);
+        } catch (Exception e) {
+            log.error("设置字段值失败：{}", e.getMessage());
+        }
+    }
+
+    /**
+     * 通过反射设置字段值(重载)
+     *
+     */
+    private void setFieldValue(Object entity, String methodName, Integer value) {
+        try{
+            Method method=entity.getClass().getMethod(methodName, Integer.class);
             method.invoke(entity, value);
         } catch (Exception e) {
             log.error("设置字段值失败：{}", e.getMessage());

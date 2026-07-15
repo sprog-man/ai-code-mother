@@ -10,6 +10,7 @@ import com.xiaoliu.aiCodeMother.model.dto.user.UserLoginRequest;
 import com.xiaoliu.aiCodeMother.model.dto.user.UserRegisterRequest;
 import com.xiaoliu.aiCodeMother.model.entity.User;
 import com.xiaoliu.aiCodeMother.model.vo.UserVO;
+import com.xiaoliu.aiCodeMother.service.UserBaseService;
 import com.xiaoliu.aiCodeMother.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,6 +33,9 @@ public class UserController {
     @Resource
     private UserService userService;
 
+    @Resource
+    private UserBaseService userBaseService;
+
     // ========== 注册与登录 接口 ==========
     /**
      * 用户注册
@@ -45,10 +49,11 @@ public class UserController {
         String userAccount= request.getUserAccount();
         String userPassword = request.getUserPassword();
         String checkPassword = request.getCheckPassword();
+        String userName= request.getUserName();
         if (StringUtils.isAllBlank(userAccount, userPassword, checkPassword)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        long userId=userService.userRegister(userAccount, userPassword, checkPassword);
+        long userId=userService.userRegister(userAccount, userPassword, checkPassword, userName);
         return  ResultUtils.success(userId);
 
     }
@@ -71,6 +76,8 @@ public class UserController {
         return ResultUtils.success(userVO);
     }
 
+    // 普通接口==========================
+
     /* 查询所有用户 */
     @GetMapping("/list")
     @Operation(summary = "查询所有用户")
@@ -91,7 +98,7 @@ public class UserController {
     @PostMapping("/add")
     @Operation(summary = "新增用户")
     public BaseResponse<Long> addUser(@RequestBody User user){
-        userService.insertUser(user);
+        userBaseService.insertUser(user);
         return ResultUtils.success(user.getId());
     }
 
@@ -99,7 +106,7 @@ public class UserController {
     @PostMapping("/update")
     @Operation(summary = "更新用户")
     public BaseResponse<Boolean> updateUser(@RequestBody User user){
-        int rows = userService.updateUser(user);
+        int rows = userBaseService.updateUser(user);
         return ResultUtils.success(rows > 0);
     }
 
