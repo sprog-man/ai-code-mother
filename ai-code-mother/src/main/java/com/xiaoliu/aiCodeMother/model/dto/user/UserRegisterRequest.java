@@ -20,5 +20,8 @@ public class UserRegisterRequest implements Serializable {
     /* 确认密码 */
     private String checkPassword;
 
+    /* 用户名 */
+    private String userName;
+
     private static final long serialVersionUID = 1L;
 }

@@ -8,6 +8,7 @@ import com.xiaoliu.aiCodeMother.exception.BusinessException;
 import com.xiaoliu.aiCodeMother.mapper.UserMapper;
 import com.xiaoliu.aiCodeMother.model.entity.User;
 import com.xiaoliu.aiCodeMother.model.vo.UserVO;
+import com.xiaoliu.aiCodeMother.service.UserBaseService;
 import com.xiaoliu.aiCodeMother.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +28,9 @@ public class UserServiceImpl implements UserService {
     @Resource
     private UserMapper userMapper;
 
+    @Resource
+    private UserBaseService userBaseService;
+
     /**
      * 盐值（加密密码的混淆串）
      */
@@ -37,21 +41,10 @@ public class UserServiceImpl implements UserService {
      */
     private static final String USER_LOGIN_STATE = "user_login";
 
-    @AutoFill(OperationType.INSERT)
-    @Override
-    public int insertUser(User user) {
-        return userMapper.insert(user);
-    }
-
-    @AutoFill(OperationType.UPDATE)
-    @Override
-    public int updateUser(User user){
-        return userMapper.update(user);
-    }
 
     // 用户注册
     @Override
-    public long userRegister(String userAccount, String userPassword, String checkPassword) {
+    public long userRegister(String userAccount, String userPassword, String checkPassword, String userName) {
         // 1. 校验参数
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
@@ -81,10 +74,10 @@ public class UserServiceImpl implements UserService {
         User user = new User();
         user.setUserAccount(userAccount);
         user.setUserPassword(encryptedPassword);
-        user.setUserName("用户"+userAccount);
+        user.setUserName(userName);
         user.setUserRole("user");
 
-        int result = userMapper.insert(user);
+        int result = userBaseService.insertUser(user);
         if (result<=0){
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败");
         }
