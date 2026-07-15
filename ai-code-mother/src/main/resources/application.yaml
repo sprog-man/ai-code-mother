@@ -1,0 +1,45 @@
+server:
+  port: 8123
+
+spring:
+  application:
+    name: ai-code-mother
+  #数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/ai_code_mother?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&allowMultiQueries=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+
+# MyBatis-Flex 配置
+mybatis-flex:
+  configuration:
+    map-underscore-to-camel-case: true # 下划线转驼峰
+    log-impl: org.apache.ibatis.logging.commons.JakartaCommonsLoggingImpl  # 打印 SQL
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+
+##Knife4j 配置 不要配置会导致调用旧版的springdoc的获取接口分组的API能力，但是高版本的数据返回类型已经改变了，所以会报错
+#knife4j:
+#  enable: true
+#  setting:
+#    language: zh_cn # 语言设置
+
+#Springdoc 配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+  group-configs:
+    - group: '默认分组'  # 给这一组接口起个名字，在文档页面的左上角下拉框里会显示这个名字。
+      paths-to-match: '/**'  # 【路径过滤】匹配哪些 URL 路径。`/**` 表示扫描项目下所有的接口路径。
+      packages-to-scan: com.xiaoliu.aiCodeMother.controller # 【包扫描】这是最关键的一行！它告诉 Springdoc：“只去 `com.xiaoliu.aiCodeMother.controller` 这个包底下，
+                                                            # 寻找带有 @RestController 或 @Controller 的类，并生成文档。”
+
