@@ -22,7 +22,10 @@ mybatis-flex:
     map-underscore-to-camel-case: true # 下划线转驼峰
     log-impl: org.apache.ibatis.logging.commons.JakartaCommonsLoggingImpl  # 打印 SQL
   mapper-locations: classpath*:/mapper/**/*.xml
-
+# 打印 Mapper 层 SQL 日志（Spring Boot 日志级别控制）
+logging:
+  level:
+    com.xiaoliu.aiCodeMother.mapper: debug
 
 ##Knife4j 配置 不要配置会导致调用旧版的springdoc的获取接口分组的API能力，但是高版本的数据返回类型已经改变了，所以会报错
 #knife4j:

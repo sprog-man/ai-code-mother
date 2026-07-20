@@ -1,5 +1,6 @@
 package com.xiaoliu.aiCodeMother.service.impl;
 
+import com.mybatisflex.core.query.QueryWrapper;
 import com.xiaoliu.aiCodeMother.annotation.AutoFill;
 import com.xiaoliu.aiCodeMother.annotation.OperationType;
 import com.xiaoliu.aiCodeMother.mapper.UserMapper;
@@ -24,5 +25,10 @@ public class UserBaseServiceImpl implements UserBaseService {
     @Override
     public int updateUser(User user) {
         return userMapper.update(user);
+    }
+
+    @Override
+    public int removeUser(QueryWrapper queryWrapper) {
+        return userMapper.deleteByQuery(queryWrapper);
     }
 }
