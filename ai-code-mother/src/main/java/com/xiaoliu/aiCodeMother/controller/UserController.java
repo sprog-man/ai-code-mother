@@ -14,10 +14,7 @@ import com.xiaoliu.aiCodeMother.common.ErrorCode;
 import com.xiaoliu.aiCodeMother.common.ResultUtils;
 import com.xiaoliu.aiCodeMother.exception.BusinessException;
 import com.xiaoliu.aiCodeMother.mapper.UserMapper;
-import com.xiaoliu.aiCodeMother.model.dto.user.UserLoginRequest;
-import com.xiaoliu.aiCodeMother.model.dto.user.UserQueryRequest;
-import com.xiaoliu.aiCodeMother.model.dto.user.UserRegisterRequest;
-import com.xiaoliu.aiCodeMother.model.dto.user.UserUpdateRequest;
+import com.xiaoliu.aiCodeMother.model.dto.user.*;
 import com.xiaoliu.aiCodeMother.model.entity.User;
 import com.xiaoliu.aiCodeMother.model.vo.UserExcelVO;
 import com.xiaoliu.aiCodeMother.model.vo.UserVO;
@@ -50,6 +47,48 @@ public class UserController {
 
     @Resource
     private UserBaseService userBaseService;
+
+    // ========== 用户个人信息接口 ==========
+    /**
+     * 获取当前登录用户（完整信息）
+     */
+    @GetMapping("/get/my")
+    @Operation(summary = "获取当前登录用户（完整信息）")
+    @AuthCheck
+    public BaseResponse<User> getMyInfo(HttpServletRequest request){
+        User user=userService.getLoginUser(request);
+        return ResultUtils.success(user);
+    }
+
+    /**
+     * 修改个人信息
+     */
+    @PostMapping("/update/my")
+    @Operation(summary = "修改个人信息")
+    @AuthCheck
+    public BaseResponse<Boolean> updateMyInfo(@RequestBody UserUpdateMyRequest userUpdateMyRequest,
+                                              HttpServletRequest request){
+        if (userUpdateMyRequest ==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        boolean result=userService.updateMyInfo(userUpdateMyRequest, request);
+        return ResultUtils.success(result);
+    }
+
+    /**
+     * 修改密码
+     */
+    @PostMapping("/update/password")
+    @Operation(summary = "修改密码")
+    @AuthCheck
+    public BaseResponse<Boolean> updatePassword(@RequestBody UserUpdatePasswordRequest userUpdatePasswordRequest,
+                                                HttpServletRequest request){
+        if (userUpdatePasswordRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        boolean result=userService.updatePassword(userUpdatePasswordRequest, request);
+        return ResultUtils.success(result);
+    }
 
     // ========== 分页查询接口 ==========
     /**

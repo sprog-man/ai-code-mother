@@ -6,23 +6,32 @@ import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.xiaoliu.aiCodeMother.annotation.AutoFill;
 import com.xiaoliu.aiCodeMother.annotation.OperationType;
+import com.xiaoliu.aiCodeMother.common.BaseResponse;
 import com.xiaoliu.aiCodeMother.common.ErrorCode;
+import com.xiaoliu.aiCodeMother.common.ResultUtils;
+import com.xiaoliu.aiCodeMother.controller.FileController;
 import com.xiaoliu.aiCodeMother.exception.BusinessException;
 import com.xiaoliu.aiCodeMother.mapper.UserMapper;
 import com.xiaoliu.aiCodeMother.model.dto.user.UserQueryRequest;
+import com.xiaoliu.aiCodeMother.model.dto.user.UserUpdateMyRequest;
+import com.xiaoliu.aiCodeMother.model.dto.user.UserUpdatePasswordRequest;
 import com.xiaoliu.aiCodeMother.model.entity.User;
 import com.xiaoliu.aiCodeMother.model.vo.UserVO;
 import com.xiaoliu.aiCodeMother.service.UserBaseService;
 import com.xiaoliu.aiCodeMother.service.UserService;
+import com.xiaoliu.aiCodeMother.utils.FileUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.List;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -272,6 +281,153 @@ public class UserServiceImpl implements UserService {
     public List<User> listAllUsersByCondition(UserQueryRequest userQueryRequest) {
         List<User> users=userMapper.selectListByQuery(buildUserQueryWrapper(userQueryRequest));
         return users;
+    }
+
+    /**
+     * 用户修改个人信息
+     */
+    @Override
+    public boolean updateMyInfo(UserUpdateMyRequest userUpdateMyRequest, HttpServletRequest request) {
+        // 1. 获取当前登录用户
+        User loginUser = getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+
+        // 2. 校验参数
+        String userName = userUpdateMyRequest.getUserName();
+        String userAvatar = userUpdateMyRequest.getUserAvatar();
+        String userProfile = userUpdateMyRequest.getUserProfile();
+
+        // 昵称长度校验
+        if (StringUtils.isNotBlank(userName) && userName.length() > 20) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "昵称过长");
+        }
+
+        // 简介长度校验
+        if (StringUtils.isNotBlank(userProfile) && userProfile.length() > 200) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "简介过长");
+        }
+
+        // 3. 更新用户信息
+        User updateUser = new User();
+        updateUser.setId(loginUser.getId());
+        updateUser.setUserName(userName);
+        updateUser.setUserAvatar(userAvatar);
+        updateUser.setUserProfile(userProfile);
+
+        int rows = userBaseService.updateUser(updateUser);
+        if (rows <= 0) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "更新失败");
+        }
+
+        return true;
+    }
+
+    /**
+     * 用户修改密码
+     */
+    @Override
+    public boolean updatePassword(UserUpdatePasswordRequest userUpdatePasswordRequest, HttpServletRequest request) {
+        // 1. 获取当前登录用户
+        User loginUser = getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+
+        // 2. 校验参数
+        String oldPassword = userUpdatePasswordRequest.getOldPassword();
+        String newPassword = userUpdatePasswordRequest.getNewPassword();
+        String checkPassword = userUpdatePasswordRequest.getCheckPassword();
+
+        if (StringUtils.isAnyBlank(oldPassword, newPassword, checkPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
+        }
+
+        if (newPassword.length() < 6 || checkPassword.length() < 6) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "新密码长度不能小于6位");
+        }
+
+        if (!newPassword.equals(checkPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次密码不一致");
+        }
+
+        // 3. 验证旧密码
+        String encryptOldPassword = DigestUtils.md5DigestAsHex((SALT + oldPassword).getBytes());
+        if (!encryptOldPassword.equals(loginUser.getUserPassword())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "旧密码错误");
+        }
+
+        // 4. 加密新密码
+        String encryptNewPassword = DigestUtils.md5DigestAsHex((SALT + newPassword).getBytes());
+        // 5. 不能与旧密码相同
+        if (encryptNewPassword.equals(encryptOldPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "新密码不能与旧密码相同");
+        }
+
+        // 6. 更新密码
+        User updateUser = new User();
+        updateUser.setId(loginUser.getId());
+        updateUser.setUserPassword(encryptNewPassword);
+
+        int rows = userBaseService.updateUser(updateUser);
+        if (rows <= 0) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "更新失败");
+        }
+
+        // 7. 清除登录态（需要重新登录）
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
+
+        return true;
+    }
+
+    @org.springframework.beans.factory.annotation.Value("${file.upload-path}")
+    private String uploadPath;
+
+    @Value("${file.url-prefix}")
+    private String urlPrefix;
+    /* 用户更新头像*/
+    @Override
+    public String updateUserAvatar(User loginUser, MultipartFile file) {
+        // 1. 生成唯一的新文件名（UUID + 扩展名）
+        String newFilename = FileUtils.generateUniqueFileName(file.getOriginalFilename());
+
+        // 2. 保存文件
+        File destFile=new File(uploadPath+newFilename);
+        try{
+            file.transferTo(destFile);
+            log.info("文件上传成功：{}", destFile.getAbsolutePath());
+        } catch (Exception e) {
+            log.error("保存文件失败，用户ID：{}", loginUser.getId(), e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "保存文件失败");
+        }
+
+        // 3. 生成标准的访问 URL
+        String newFileUrl = urlPrefix + "/" +newFilename;
+
+        // 4. 数据库中查询旧头像的url
+        User userInDb=userMapper.selectOneById(loginUser.getId());
+        String oldAvatarUrl = userInDb.getUserAvatar();
+
+        // 5. 更新数据库为新头像 URL
+        User updateUser = new User();
+        updateUser.setId(loginUser.getId());
+        updateUser.setUserAvatar(newFileUrl);
+        userBaseService.updateUser(updateUser);
+
+        // 6. 物理删除旧文件
+        if (oldAvatarUrl != null && !oldAvatarUrl.isEmpty() && oldAvatarUrl.contains(urlPrefix)) {
+            try {
+                String oldFileName = oldAvatarUrl.substring(oldAvatarUrl.lastIndexOf("/") + 1);
+                String oldFilePath = uploadPath + oldFileName;
+                FileUtils.deleteFile(oldFilePath);
+            } catch (Exception e) {
+                log.error("删除旧头像文件失败，用户ID：{}", loginUser.getId(), e);
+            }
+        }
+
+        return newFileUrl;
+
     }
 
     /**
