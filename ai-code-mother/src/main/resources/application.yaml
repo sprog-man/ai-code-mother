@@ -16,6 +16,18 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
 
+    # 文件上传配置
+    servlet:
+      multipart:
+        enabled: true
+        max-file-size: 10MB      # 单个文件最大 10MB
+        max-request-size: 20MB   # 整个请求最大 20MB
+
+# 文件存储路径（自定义配置）
+file:
+  upload-path: E:/upload/avatar/  # 文件存储路径
+  url-prefix: /api/file/avatar    # 访问 URL 前缀
+
 # MyBatis-Flex 配置
 mybatis-flex:
   configuration:
