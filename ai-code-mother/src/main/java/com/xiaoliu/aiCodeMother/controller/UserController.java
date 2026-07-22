@@ -26,6 +26,7 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URLEncoder;
@@ -428,6 +429,7 @@ public class UserController {
     /* 根据ID查询用户 */
     @GetMapping("/{id}")
     @Operation(summary = "根据ID查询用户")
+    @Cacheable(cacheNames = "user", key = "#id")
     public BaseResponse<User> getUserById(@PathVariable Long id){
         User user=userMapper.selectOneById(id);
         return ResultUtils.success(user);

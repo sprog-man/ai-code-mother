@@ -8,6 +8,9 @@ import com.xiaoliu.aiCodeMother.model.dto.user.UserUpdatePasswordRequest;
 import com.xiaoliu.aiCodeMother.model.entity.User;
 import com.xiaoliu.aiCodeMother.model.vo.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -112,5 +115,10 @@ public interface UserService {
     /**
      * 用户更新头像
      */
+    // 当用户更新头像后，必须删除 Redis 里的旧缓存，保证下次查询时能拿到最新的头像 URL
+    //rollbackFor = Exception.class 这句话的意思就是：
+    //“Spring 你给我听好了！不管代码里抛出什么类型的异常（哪怕是普通的 Exception），只要出错了，就立刻给我无条件回滚！”
+    @CacheEvict(cacheNames = "user", key = "#loginUser.id")
+    @Transactional(rollbackFor = Exception.class)
      String updateUserAvatar(User loginUser, MultipartFile file);
 }

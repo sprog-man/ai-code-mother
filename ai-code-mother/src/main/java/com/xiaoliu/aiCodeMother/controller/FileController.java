@@ -6,7 +6,6 @@ import com.xiaoliu.aiCodeMother.common.BaseResponse;
 import com.xiaoliu.aiCodeMother.common.ErrorCode;
 import com.xiaoliu.aiCodeMother.common.ResultUtils;
 import com.xiaoliu.aiCodeMother.exception.BusinessException;
-import com.xiaoliu.aiCodeMother.model.dto.user.UpdateAvatarRequest;
 import com.xiaoliu.aiCodeMother.model.entity.User;
 import com.xiaoliu.aiCodeMother.service.UserBaseService;
 import com.xiaoliu.aiCodeMother.service.UserService;
@@ -17,6 +16,8 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -45,6 +46,14 @@ public class FileController {
     @Resource
     private UserBaseService userBaseService;
 
+    // 注入 Redis 模板
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
+    // 注入 Lua 脚本，这个是我们在redis配置类中注入的对象
+    @Resource
+    private DefaultRedisScript<Long> rateLimitScript;
+
     /**
      * 上传头像
      */
@@ -52,6 +61,25 @@ public class FileController {
     @Operation(summary = "上传头像")
     @AuthCheck
     public BaseResponse<String> uploadAvatar(@RequestParam("file") MultipartFile file,HttpServletRequest request){
+        // ========== 【新增】Redis + Lua 限流逻辑 ==========
+        // 1. 获取当前登录用户（用用户ID作为限流维度，比IP更精准）
+        User loginUser = userService.getLoginUser(request);
+        String limitKey="ratelimit:upload:" + loginUser.getId();
+
+        // 2. 执行 Lua 脚本：10秒内最多允许上传 3 次
+        Long result=stringRedisTemplate.execute(
+                rateLimitScript,
+                java.util.Collections.singletonList(limitKey), //传入key
+                "10", //时间窗口 10s
+                "3" //最大次数：3次   //"10", "3"：这些可变参数，对应 Lua 脚本里的 ARGV[1], ARGV[2]。
+        );
+
+        // 3. 如果返回 0，说明触发了限流，直接抛出异常
+        if (result == null || result == 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "上传太频繁了，请10秒后再试！");
+        }
+        // ========== 限流逻辑结束 ==========
+
         // 1. 校验文件
         if (file == null || file.isEmpty()){
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件为空");
