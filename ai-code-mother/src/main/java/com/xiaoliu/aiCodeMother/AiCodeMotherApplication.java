@@ -3,6 +3,7 @@ package com.xiaoliu.aiCodeMother;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 
 /*
 * 主程序入口
@@ -11,6 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 */
 @SpringBootApplication
 @MapperScan("com.xiaoliu.aiCodeMother.mapper") //扫描mapper接口
+@EnableCaching // 开启 Spring Cache 缓存
 public class AiCodeMotherApplication {
 
     public static void main(String[] args) {
