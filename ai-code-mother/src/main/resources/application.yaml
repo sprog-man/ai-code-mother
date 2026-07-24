@@ -17,7 +17,7 @@ spring:
       idle-timeout: 600000
   data:
     redis:
-      host: localhost
+      host: 192.168.150.132
       port: 6379
       password:
       database: 0   #使用数据库索引
@@ -29,8 +29,6 @@ spring:
       key-prefix: "CACHE:" # 统一加前缀，方便在 Redis 里区分
       use-key-prefix: true
       cache-null-values: false # 不缓存空值，防止缓存穿透
-
-
 
     # 文件上传配置
     servlet:
@@ -75,4 +73,27 @@ springdoc:
       paths-to-match: '/**'  # 【路径过滤】匹配哪些 URL 路径。`/**` 表示扫描项目下所有的接口路径。
       packages-to-scan: com.xiaoliu.aiCodeMother.controller # 【包扫描】这是最关键的一行！它告诉 Springdoc：“只去 `com.xiaoliu.aiCodeMother.controller` 这个包底下，
                                                             # 寻找带有 @RestController 或 @Controller 的类，并生成文档。”
+
+# LangChain4j 配置
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: https://api.deepseek.com
+      api-key: sk-47a9cd6e0d9342898e9f25e7456fc07b
+      model-name: deepseek-chat
+      max-tokens: 4096
+      temperature: 0.7
+    streaming-chat-model:
+      base-url: https://api.deepseek.com
+      api-key: sk-47a9cd6e0d9342898e9f25e7456fc07b
+      model-name: deepseek-chat
+      max-tokens: 4096
+      temperature: 0.7
+  community:
+    redis:
+      enabled: false #关闭使用向量库的自动装配
+
+
+
+
 

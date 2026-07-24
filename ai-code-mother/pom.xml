@@ -117,16 +117,25 @@
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
 
-        <!-- 核心库，版本 1.18.0 是存在的 -->
+        <!-- LangChain4j OpenAI Spring Boot Starter -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-open-ai</artifactId>
-            <version>1.18.0</version>
+            <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
+            <version>1.18.0-beta28</version>
         </dependency>
+
+        <!-- LangChain4j Reactor 支持（流式输出用） -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j</artifactId>
-            <version>1.18.0</version>
+            <artifactId>langchain4j-reactor</artifactId>
+            <version>1.18.0-beta28</version>
+        </dependency>
+
+        <!-- LangChain4j Community Redis 用于将ai记忆会话存储到redis中-->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-community-redis-spring-boot-starter</artifactId>
+            <version>1.18.0-beta28</version>
         </dependency>
     </dependencies>
 
