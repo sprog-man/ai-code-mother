@@ -1,3 +1,2 @@
 doc/
-*.yaml
-
+application-secret.yml
