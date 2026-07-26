@@ -13,4 +13,7 @@ public interface AiService {
      * @return AI 的回复内容
      */
     String chat(String message);
+
+
+
 }
