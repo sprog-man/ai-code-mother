@@ -1,0 +1,91 @@
+server:
+  port: 8123
+
+
+spring:
+  config:
+    import: classpath:application-secret.yml
+  application:
+    name: ai-code-mother
+  # 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/ai_code_mother?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456  # 改成你的密码
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password:
+      database: 0   #使用数据库索引
+      connect-timeout: 5000ms
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000 # 设置全局缓存过期时间（1小时，防止内存溢出）
+      key-prefix: "CACHE:" # 统一加前缀，方便在 Redis 里区分
+      use-key-prefix: true
+      cache-null-values: false # 不缓存空值，防止缓存穿透
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB      # 单个文件最大 10MB
+      max-request-size: 20MB   # 整个请求最大 20MB
+
+# 文件存储路径（自定义配置）
+file:
+  upload-path: E:/upload/avatar/  # 文件存储路径
+  url-prefix: /api/file/avatar    # 访问 URL 前缀
+
+# MyBatis-Flex 配置
+mybatis-flex:
+  configuration:
+    map-underscore-to-camel-case: true  # 下划线转驼峰，这里看你的数据库表和字段命名，如果是下划线就配置
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 打印 SQL
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+# Knife4j 配置  配置knife4j会出问题，原因见下面解释
+#knife4j:
+#  enable: true
+#  setting:
+#    language: zh_cn  # 中文界面
+
+# Springdoc 配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+  group-configs:
+    - group: '默认分组'
+      paths-to-match: '/**'
+      packages-to-scan: com.xiaoliu.aiCodeMother.controller
+
+# LangChain4j 配置
+langchain4j:
+  open-ai:
+    chat-model:
+      base-url: ${BASE_URL}
+      api-key: ${API_KEY}
+      model-name: agnes-2.0-flash
+      max-tokens: 30000
+      temperature: 0.7
+    streaming-chat-model:
+      base-url: ${BASE_URL}
+      api-key: ${API_KEY}
+      model-name: agnes-2.0-flash
+      max-tokens: 30000
+      temperature: 0.7
+  community:
+    redis:
+      enabled: false  # 关闭 Redis 向量库的自动装配，仅保留手动配置的会话记忆
