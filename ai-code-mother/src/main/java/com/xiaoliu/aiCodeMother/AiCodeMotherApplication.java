@@ -4,6 +4,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /*
 * 主程序入口
@@ -13,6 +14,7 @@ import org.springframework.cache.annotation.EnableCaching;
 @SpringBootApplication
 @MapperScan("com.xiaoliu.aiCodeMother.mapper") //扫描mapper接口
 @EnableCaching // 开启 Spring Cache 缓存
+@EnableScheduling // 开启 Spring Scheduling 定时任务
 public class AiCodeMotherApplication {
 
     public static void main(String[] args) {
