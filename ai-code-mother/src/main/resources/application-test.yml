@@ -1,0 +1,10 @@
+# Redis 配置
+REDIS_HOST: 192.168.150.132
+REDIS_PORT: 6379
+REDIS_PASSWORD:    # 如果无密码，可以留空或注释
+REDIS_DATABASE: 0
+
+#ai配置
+API_KEY: sk-ecd160f859f14e74891b4d98ded32bb9
+BASE_URL: https://llm-uagne8vzwxy8m1w0.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
+MODEL: qwen3.7-flash
