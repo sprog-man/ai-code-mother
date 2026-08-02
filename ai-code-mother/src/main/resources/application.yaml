@@ -3,15 +3,15 @@ server:
 
 
 spring:
-  config:
-    import: classpath:application-secret.yml
+  profiles:
+    active: test
   application:
     name: ai-code-mother
   # 数据源配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/ai_code_mother?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
-    username: root
+    url: jdbc:mysql://192.168.150.100:3306/ai_code_mother?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: aiops
     password: 123456  # 改成你的密码
     hikari:
       maximum-pool-size: 10
@@ -77,15 +77,32 @@ langchain4j:
     chat-model:
       base-url: ${BASE_URL}
       api-key: ${API_KEY}
-      model-name: agnes-2.0-flash
+      model-name: ${MODEL}
       max-tokens: 30000
       temperature: 0.7
     streaming-chat-model:
       base-url: ${BASE_URL}
       api-key: ${API_KEY}
-      model-name: agnes-2.0-flash
+      model-name: ${MODEL}
       max-tokens: 30000
       temperature: 0.7
   community:
     redis:
       enabled: false  # 关闭 Redis 向量库的自动装配，仅保留手动配置的会话记忆
+
+
+logging:
+  level:
+    com.xiaoliu.aiCodeMother: debug
+  file:
+    name: ai-code-mother.log
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  metrics:
+    tags:
+      application: ai-code-mother
+

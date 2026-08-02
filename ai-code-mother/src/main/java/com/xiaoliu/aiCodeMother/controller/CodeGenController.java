@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 代码生成 Controller
@@ -40,21 +42,57 @@ public class CodeGenController {
     /**
      * 生成并返回 HTML 内容
      */
+//    @PostMapping("/generate")
+//    @Operation(summary = "生成并返回 HTML 内容")
+//    public BaseResponse<String> generate(@RequestBody CodeGenRequest request){
+//        String message= request.getMessage();
+//        if (message == null || message.isBlank()){
+//            return ResultUtils.error(ErrorCode.PARAMS_ERROR, "需求描述不能为空");
+//        }
+//
+//        // 生成并保存
+//        File saveDir = codeGeneratorFacade.generateAndSaveHtml(message);
+//
+//        // 读取生成的HTML内容返回
+//        File htmlFile=new File(saveDir, "index.html");
+//        String htmlContent = FileUtil.readUtf8String(htmlFile);
+//        return ResultUtils.success(htmlContent);
+//    }
+
+    /**
+     * 第五阶段开发实现html代码预览
+     */
     @PostMapping("/generate")
     @Operation(summary = "生成并返回 HTML 内容")
-    public BaseResponse<String> generate(@RequestBody CodeGenRequest request){
-        String message= request.getMessage();
+    public BaseResponse<Map<String, String>> generate(@RequestBody CodeGenRequest request){
+        String message = request.getMessage();
         if (message == null || message.isBlank()){
             return ResultUtils.error(ErrorCode.PARAMS_ERROR, "需求描述不能为空");
         }
 
-        // 生成并保存
-        File saveDir = codeGeneratorFacade.generateAndSaveHtml(message);
+        // 判断生成类型
+        File saveDir;
+        if ("multi_file".equalsIgnoreCase(request.getType())){
+            saveDir = codeGeneratorFacade.generateAndSaveMultiFile(message);
+        }else {
+            saveDir = codeGeneratorFacade.generateAndSaveHtml(message);
+        }
 
-        // 读取生成的HTML内容返回
-        File htmlFile=new File(saveDir, "index.html");
+        // 构建预览 URL
+        ////saveDir.getName()最终获取到的，仅仅是这个目录的“名字”（最后一级文件夹名），绝对不包含前面的任何路径！
+        String dirName=saveDir.getName();
+        String previewUrl="/preview" + dirName;
+
+        // 读取HTML内容
+        File htmlFile = new File(saveDir, "index.html");
         String htmlContent = FileUtil.readUtf8String(htmlFile);
-        return ResultUtils.success(htmlContent);
+
+        Map<String,String> result=new HashMap<>();
+        result.put("htmlContent", htmlContent);
+        result.put("previewUrl", previewUrl);
+        result.put("dirName",dirName);
+
+        return ResultUtils.success(result);
     }
 
     /**

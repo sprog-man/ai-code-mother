@@ -2,6 +2,7 @@ package com.xiaoliu.aiCodeMother.core;
 
 
 import com.xiaoliu.aiCodeMother.ai.model.HtmlCodeResult;
+import com.xiaoliu.aiCodeMother.ai.model.MultiFileCodeResult;
 import com.xiaoliu.aiCodeMother.core.saver.CodeFileSaverExecutor;
 import com.xiaoliu.aiCodeMother.service.CodeGeneratorService;
 import jakarta.annotation.Resource;
@@ -41,4 +42,19 @@ public class CodeGeneratorFacade {
 
         return savedFile;
     }
+
+    /**
+     * 生成并保存多文件代码
+     */
+    public File generateAndSaveMultiFile(String userPrompt){
+        log.info("开始生成多文件代码，用户需求：{}", userPrompt);
+
+        long startTime=System.currentTimeMillis();
+        MultiFileCodeResult result=codeGeneratorService.generateMultiFileCode(userPrompt);
+        long aiDuration=System.currentTimeMillis()-startTime;
+        log.info("AI 调用完成，耗时：{}ms", aiDuration);
+        return CodeFileSaverExecutor.saveMultiFile(result);
+    }
+
+
 }
