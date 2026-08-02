@@ -6,12 +6,27 @@ pipeline {
         NEXUS_URL = 'http://192.168.150.100:8081'
     }
 
+
     stages {
         stage('拉取代码') {
             steps {
                 echo '代码已由 SCM 自动拉取'
             }
         }
+        stage('查看目录结构') {
+    		steps {
+        		sh '''
+            		echo "当前工作目录："
+           		 	pwd
+            		echo "目录内容："
+            		ls -la
+            		echo "检查 ai-code-mother 目录是否存在："
+            		ls -la ai-code-mother/ || echo "ai-code-mother 目录不存在！"
+        			'''
+    		}
+		}
+
+
 
         stage('编译打包') {
             steps {
