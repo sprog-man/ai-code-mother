@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.xiaoliu</groupId>
     <artifactId>ai-code-mother</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>ai-code-mother</name>
     <description>ai-code-mother</description>
 
@@ -137,7 +137,28 @@
             <artifactId>langchain4j-community-redis-spring-boot-starter</artifactId>
             <version>1.18.0-beta28</version>
         </dependency>
+
+        <!-- Prometheus运维监控 -->
+        <!-- 1. Actuator 核心依赖（必须要有，否则 management 路径不生效） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- 2. Prometheus 注册扩展 -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
     </dependencies>
+
+    <!-- pom.xml 中配置发布目标仓库 -->
+    <distributionManagement>
+        <repository>
+            <id>my-release</id>
+            <url>http://192.168.150.100:8081/repository/my-release/</url>
+        </repository>
+    </distributionManagement>
 
     <build>
         <plugins>
